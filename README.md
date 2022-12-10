@@ -9,6 +9,8 @@ Kelompok A02
 ### A)
 Tugas pertama kalian yaitu membuat topologi jaringan sesuai dengan rancangan yang diberikan Loid
 
+![](img/0.png)
+
 + Eden adalah DNS Server
 + WISE adalah DHCP Server
 + Garden dan SSS adalah Web Server
@@ -46,7 +48,6 @@ apt-get update
 apt-get install -y apache2
 apt-get install -y libapache2-mod-php7.0
 ```
-![](img/0.png)
 
 ### B)
 Untuk menjaga perdamaian dunia, Loid ingin meminta kalian untuk membuat topologi tersebut menggunakan teknik CIDR atau VLSM setelah melakukan subnetting.
@@ -240,7 +241,7 @@ iptables -t nat -A POSTROUTING -s 10.0.0.0/21 -o eth0 -j SNAT --to-source [Ip Ro
 ### 2.
 Kalian diminta untuk melakukan drop semua TCP dan UDP dari luar Topologi kalian pada server yang merupakan DHCP Server demi menjaga keamanan.
 
-#### WISE
+#### Strix
 ```
 iptables -A FORWARD -p tcp -d 10.0.0.11 -i eth0 -j DROP
 iptables -A FORWARD -p udp -d 10.0.0.11 -i eth0 -j DROP
@@ -309,10 +310,21 @@ iptables -t nat -A PREROUTING -p tcp -d 10.0.0.19 --dport 80 -m statistic --mode
 ### 6.
 Karena Loid ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level.
 
+Buat chain baru bernama `LOGGING`. Chain ini diberi rules sedimikian rupa sehingga packet yang masuk ke chain ini akan di-log baru kemudian di drop.
 ```
 iptables -N LOGGING
 iptables -A LOGGING -j LOG --log-prefix "IPTables-Dropped: " --log-level 4
 iptables -A LOGGING -j DROP
+```
+Kemudian ganti semua `DROP` pada rules yang telah dibuat. Sebagai contoh rules pada strix
+```
+iptables -A FORWARD -p tcp -d 10.0.0.11 -i eth0 -j DROP
+iptables -A FORWARD -p udp -d 10.0.0.11 -i eth0 -j DROP
+```
+Diubah menjadi
+```
+iptables -A FORWARD -p tcp -d 10.0.0.11 -i eth0 -j LOGGING
+iptables -A FORWARD -p udp -d 10.0.0.11 -i eth0 -j LOGGING
 ```
 
 ## Kendala
